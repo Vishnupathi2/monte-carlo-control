@@ -1,20 +1,20 @@
-# MONTE CARLO CONTROL ALGORITHM
-
-## AIM
-Write the experiment AIM.
-
-## PROBLEM STATEMENT
-Explain the problem statement.
-
-## MONTE CARLO CONTROL ALGORITHM
-Include the steps involved in the Monte Carlo control algorithm
-
-## MONTE CARLO CONTROL FUNCTION
-Include the Monte Carlo control function
-
-## OUTPUT:
-Mention the optimal policy, optimal value function , success rate for the optimal policy.
-
-## RESULT:
-
-Write your result here
+import os
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras import utils
+from tensorflow.keras import models
+from sklearn.metrics import classification_report,confusion_matrix
+import tensorflow as tf
+# to share the GPU resources for multiple sessions
+from tensorflow.compat.v1.keras.backend import set_session
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True # dynamically grow the memory used on the GPU
+config.log_device_placement = True # to log device placement (on which device the operation ran)
+sess = tf.compat.v1.Session(config=config)
+set_session(sess)
