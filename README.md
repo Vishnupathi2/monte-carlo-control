@@ -1,94 +1,77 @@
 # MONTE CARLO CONTROL ALGORITHM
 
 ## AIM
-
-The aim is to use Monte Carlo Control in a specific environment to learn an optimal policy, estimate state-action values, iteratively improve the policy, and optimize decision-making through a functional reinforcement learning algorithm.
+To develop a Python program to find the optimal policy for the given RL environment using the Monte Carlo algorithm
 
 ## PROBLEM STATEMENT
-
-Monte Carlo Control is a reinforcement learning method, to figure out the best actions for different situations in an environment. The provided code is meant to do this, but it's currently having issues with variables and functions.
+To find the optimal policy for the given RL environnment Frozen Lake using the Monte Carlo algorithm which use both exploration and exploitation for finding the optimal policy. Exploitation: Agent taking an action based on the current knowledge. Exploration: Agent taking a new action to learn new information. The epsilon is used to balance the exploration and exploitation, The value of the epsilon decreases gradually which indicates sufficient exploration and the agent has gained the new information.
 
 ## MONTE CARLO CONTROL ALGORITHM
+Initialize the state value function V(s) and the policy π(s) arbitrarily.
 
-#### Step 1:
+Generate an episode using π(s) and store the state, action, and reward sequence.
 
-Initialize Q-values, state-value function, and the policy.
+For each state s appearing in the episode:
 
-#### Step 2:
+G ← return following the first occurrence of s Append G to Returns(s) V(s) ← average(Returns(s)) For each state s in the episode: π(s) ← argmax_a ∑_s' P(s'|s,a)V(s') Repeat steps 2-4 until the policy converges.
 
-Interact with the environment to collect episodes using the current policy.
+Use the function decay_schedule to decay the value of epsilon and alpha.
 
-#### Step 3:
+Use the function gen_traj to generate a trajectory.
 
-For each time step within episodes, calculate returns (cumulative rewards) and update Q-values.
+Use the function tqdm to display the progress bar.
 
-#### Step 4:
+After the policy converges, use the function np.argmax to find the optimal policy. The function takes the following arguments:
 
-Update the policy based on the improved Q-values.
-
-#### Step 5:
-
-Repeat steps 2-4 for a specified number of episodes or until convergence.
-
-#### Step 6:
-
-Return the optimal Q-values, state-value function, and policy.
+Q: The Q-table. axis: The axis along which to find the maximum value.
+```
+Developed by :M.vivek reddy
+Reg No: 212221240030
+```
 
 ## MONTE CARLO CONTROL FUNCTION
-
 ```
-Name: Senthil Kumar S
-Reg no: 212221230091
-```
-
-```python
 from tqdm import tqdm
-def mc_control (env, gamma = 1.0,
-                init_alpha = 0.5,min_alpha = 0.01, alpha_decay_ratio = 0.5,
-                init_epsilon = 1.0, min_epsilon = 0.1, epsilon_decay_ratio = 0.9,
-                n_episodes = 3000, max_steps = 200, first_visit = True):
+def mc_control(env, gamma = 1.0, init_alpha = 0.5, min_alpha = 0.01,
+               alpha_decay_ratio = 0.5, init_epsilon = 1.0, min_epsilon = 0.1,
+               epsilon_decay_ratio = 0.9, n_episodes = 3000, max_steps = 200,
+               first_visit = True):
   nS, nA = env.observation_space.n, env.action_space.n
-  discounts = np.logspace(0, max_steps,num=max_steps,base=gamma,endpoint=False)
-  alphas = decay_schedule(init_alpha,min_alpha,alpha_decay_ratio,n_episodes)
-  epsilons = decay_schedule(init_epsilon,min_epsilon,epsilon_decay_ratio,n_episodes)
+
+  discounts = np.logspace(0,max_steps, num=max_steps,
+                          base=gamma, endpoint = False)
+
+  alphas = decay_schedule(init_alpha, min_alpha, alpha_decay_ratio, n_episodes)
+
+  epsilons = decay_schedule(init_epsilon, min_epsilon, epsilon_decay_ratio, n_episodes)
+
   pi_track = []
-  Q = np.zeros((nS, nA))
-  Q_track = np.zeros((n_episodes,nS,nA))
-  select_action = lambda state, Q, epsilon: np.argmax(Q[state]) if np.random.random() > epsilon else np.random.randint(len(Q[state]))
+
+  Q = np.zeros((nS, nA), dtype = np.float64)
+  Q_track = np.zeros((n_episodes, nS, nA), dtype = np.float64)
+
+  select_action = lambda state, Q, epsilon: np.argmax(Q[state]) if np.random.random() > epsilon_decay_ratio else np.random.randint(len(Q[state]))
+
   for e in tqdm(range(n_episodes), leave = False):
-    trajectory = generate_trajectory(select_action,Q,epsilons[e],env,max_steps)
-    visited = [[0]*nA for _ in range(nS)]
-
-
-    for t, (state,action,reward,_,_) in enumerate(trajectory):
-      state = int(state)
-      action = int(action)
-      #print(visited[state][action])
+    trajectory = generate_trajectory(select_action, Q, epsilons[e], env, max_steps)
+    visited = np.zeros((nS, nA), dtype = bool)
+    for t, (state, action, reward, _, _) in enumerate(trajectory):
       if visited[state][action] and first_visit:
         continue
-      visited[state][action] = 1
+      visited[state][action] = True
       n_steps = len(trajectory[t:])
-      G = np.sum(discounts[:n_steps] * trajectory[t:,2])
-      Q[state][action] = Q[state][action] + alphas[e] * (G - Q[state][action])
+      G = np.sum(discounts[:n_steps] * trajectory[t:, 2])
+      Q[state][action] += alphas[e] * (G - Q[state][action])
     Q_track[e] = Q
-    pi_track.append(np.argmax(Q, axis=1))
-  V = np.max(Q, axis=1)
-  pi = lambda s: {s:a for s, a in enumerate(np.argmax(Q, axis=1))}[s]
-
-  return Q, V, pi, Q_track, pi_track
+    pi_track.append(np.argmax(Q, axis = 1))
+  V = np.max(Q, axis = 1)
+  pi = lambda s: {s:a for s, a in enumerate(np.argmax(Q, axis = 1))}[s]
+  return Q, V, pi
 ```
-
 ## OUTPUT:
+Mention the optimal policy, optimal value function , success rate for the optimal policy.
 
-### 1st Ouput
-
-![image](https://github.com/Senthil-Kumar-710/monte-carlo-control/assets/93860256/ede4b71f-4ba8-4040-8981-f1a6b6c90742)
-
-
-### 2nd Output
-
-![image](https://github.com/Senthil-Kumar-710/monte-carlo-control/assets/93860256/fdcb347b-e747-496d-9dd3-3b13ac4bd348)
+![image](https://github.com/Vivekreddy8360/monte-carlo-control/assets/94525701/ecb1816c-140a-46c6-892a-5801f4c73b53)
 
 ## RESULT:
-
-Thus the program to use Monte Carlo Control in a specific environment to learn an optimal policy, estimate state-action values, iteratively improve the policy, and optimize decision-making through a functional reinforcement learning algorithm is successfully completed.
+Therefore a python program is successfully developed to find the optimal policy for the given RL environment using the Monte Carlo Algorithm.
